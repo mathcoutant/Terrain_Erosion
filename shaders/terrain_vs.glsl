@@ -22,7 +22,7 @@ layout(binding = UBO_APPLICATION_BINDING, std140) uniform UBO_APPLICATION
 };
 
 
-
+out vec3 pos[];
 out uint material_id;
 void main() 
 {

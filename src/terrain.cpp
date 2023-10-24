@@ -21,6 +21,7 @@ Terrain::Terrain()
 void Terrain::load_shaders(std::string base_path)
 {
 	m_shader_terrain_point->add_shader(GL_VERTEX_SHADER, base_path, "shaders/terrain_vs.glsl");
+	m_shader_terrain_point->add_shader(GL_GEOMETRY_SHADER, base_path, "shaders/terrain_gs.glsl");
 	m_shader_terrain_point->add_shader(GL_FRAGMENT_SHADER, base_path, "shaders/terrain_fs.glsl");
 	m_shader_terrain_point->compile_and_link_to_program();
 	ContextHelper::add_shader_to_hot_reload(m_shader_terrain_point);

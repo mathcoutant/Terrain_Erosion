@@ -21,16 +21,16 @@ layout(binding = UBO_APPLICATION_BINDING, std140) uniform UBO_APPLICATION
     //Modelisation parameters to add probably
 };
 
-
-out vec3 pos[];
 out uint material_id;
 void main() 
 {
     int dim_2d = (dimension.y*dimension.z);
     ivec3 voxel_coord = ivec3(gl_VertexID / dim_2d,(gl_VertexID % dim_2d)/dimension.z,(gl_VertexID % dim_2d) % dimension.z);
 
+
     vec3 pos = voxel_coord * params.z;
+
     material_id = imageLoad(tex_material_id,voxel_coord).x;
 
-    gl_Position = w_v_p*vec4(pos,1.0);
+    gl_Position = vec4(pos,1.0);
 }

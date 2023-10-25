@@ -17,13 +17,13 @@
 
 #include "terrain.hpp"
 
-#define FOLDER_ROOT "D:/Projet_Rendu/Terrain_Erosion/"
-//#define FOLDER_ROOT "../../../"
-
+//#define FOLDER_ROOT "D:/Projet_Rendu/Terrain_Erosion/" // Victorine's stupid laptop
+//#define FOLDER_ROOT "../../../" // Mathieu
+#define FOLDER_ROOT "../" //Jeremie
 
 int main(int argc, char* argv[]) {
 
-	ContextHelper::init_context_all(1440, 900, "Windows XP");//No MSAA, because of Deferred shading
+	ContextHelper::init_context_all(1440, 900, "Terrain Erosion");
 	ContextHelper::print_opengl_info();
 
 
@@ -36,11 +36,6 @@ int main(int argc, char* argv[]) {
 	cam.set_camera(vec3(100.0f,50.0f,0.0f),180.0f);
 	cam.set_params(0.1f,1.0f,50.0f);
 
-
-	Terrain terrain;
-	terrain.load_shaders(FOLDER_ROOT);
-
-
 	//UBO init
 	ApplicationUboDataStructure app_ubo_data;
 	GPUBuffer application_ubo;
@@ -48,6 +43,13 @@ int main(int argc, char* argv[]) {
 	application_ubo.set_target_and_slot(GL_UNIFORM_BUFFER, UBO_APPLICATION_BINDING);
 
 	app_ubo_data.sun_light = vec4(1.0f, 0.0f, 0.0f, 0.4f);
+
+	Terrain terrain;
+	terrain.load_shaders(FOLDER_ROOT);
+	terrain.write_params_to_application_struct(app_ubo_data);
+	application_ubo.write_to_gpu(&app_ubo_data);
+	terrain.resize();//Calls compute dispatch for 3d texture init
+
 
 
 	//OpenglFlags

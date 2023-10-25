@@ -13,9 +13,7 @@ Terrain::Terrain()
 	m_erosion_factor = 1.0f;
 	m_terrain_seed = 0u;
 	m_scale = 1.0f;
-
 	tex_material_id.create_empty(m_dimension, {GL_R8UI,GL_RED_INTEGER,GL_UNSIGNED_BYTE}, TEXTURE3D_SLOT_MATERIALID);
-	resize();
 }
 
 void Terrain::load_shaders(std::string base_path)
@@ -43,7 +41,9 @@ void Terrain::load_shaders(std::string base_path)
 void Terrain::resize()
 {
 	m_voxel_count = m_dimension.x * m_dimension.y * m_dimension.z;
-	m_workgroup_count = (m_dimension - uvec3(1)) / WORK_GROUP3D_SIZE + uvec3(1);
+	m_workgroup_count = (m_dimension - uvec3(1u,1u,1u)) / WORK_GROUP3D_SIZE + uvec3(1u, 1u, 1u);
+
+	std::cout << "Terrain new size: " << std::to_string(m_dimension.x) << " X " << std::to_string(m_dimension.y) << " X " << std::to_string(m_dimension.z) << " X " << std::endl;
 
 	tex_material_id.re_create_empty(m_dimension);
 	m_compute3D_init->use_shader_program();
@@ -118,8 +118,8 @@ void Terrain::gui(ApplicationUboDataStructure& app_ubo)
 
 			//m_dimension = (m_dimension / uvec3(32)) * uvec3(32);
 
-			if (old_dim != m_dimension)
-				resize();
+			//if (old_dim != m_dimension)
+			//	resize();
 
 			d = m_erosion_passes_per_frame;
 			ImGui::InputInt("Erosion passes", &(d), 1, 100);

@@ -6,7 +6,7 @@
 #include <GLFW/glfw3.h>
 
 
-#define WORK_GROUP3D_SIZE uvec3(4,4,4);// 4x4x4 = 64 threads
+#define WORK_GROUP3D_SIZE uvec3(4u,4u,4u)// 4x4x4 = 64 threads
 class Terrain {
 
 public:

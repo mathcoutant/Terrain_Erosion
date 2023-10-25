@@ -1,6 +1,5 @@
 #version 460
-//Must match game.hpp
-layout (local_size_x = 4, local_size_y = 4,local_size_z = 4) in;
+layout(local_size_x = 4, local_size_y = 4,local_size_z = 4) in;
 
 layout(binding = 0, r8ui) uniform uimage3D tex_material_id;
 

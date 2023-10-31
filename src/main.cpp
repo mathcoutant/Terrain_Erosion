@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 	GPUBuffer application_ubo;
 	application_ubo.allocate(sizeof(ApplicationUboDataStructure));
 	application_ubo.set_target_and_slot(GL_UNIFORM_BUFFER, UBO_APPLICATION_BINDING);
-
+	app_ubo_data.params.w = 1.0f;//Ugly init
 	app_ubo_data.sun_light = vec4(1.0f, 0.0f, 0.0f, 0.4f);
 
 	Terrain terrain;

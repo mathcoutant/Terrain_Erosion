@@ -33,7 +33,10 @@ ivec3 voxel_coord = ivec3(gl_GlobalInvocationID.xyz);
 if (voxel_coord.x>=dimension.x || voxel_coord.y>=dimension.y || voxel_coord.z>=dimension.z)
     return;//abort invocation if voxel out from texture3D
 
-vec3 value = vec3(voxel_coord)/vec3(dimension.xyz);
+vec3 value = vec3(0.5);
+value.x = 0.0;
+value.z = float(voxel_coord.y)/float(dimension.y);
+//vec3(voxel_coord)/vec3(dimension.xyz);
 
 uvec3 new_terrain_quantized = clamp(uvec3(value*FRACTION_QUANTIZER),0u,FRACTION_QUANTIZER);
 

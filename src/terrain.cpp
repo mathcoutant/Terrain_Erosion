@@ -107,7 +107,7 @@ void Terrain::write_params_to_application_struct(ApplicationUboDataStructure& ap
 	app_ubo.params.x = m_erosion_factor;
 	app_ubo.params.y = uintBitsToFloat(m_terrain_seed);
 	app_ubo.params.z = m_scale;
-	app_ubo.params.w = 0.0f;
+	//app_ubo.params.w from UI
 }
 
 void Terrain::gui(ApplicationUboDataStructure& app_ubo)
@@ -121,6 +121,8 @@ void Terrain::gui(ApplicationUboDataStructure& app_ubo)
 				resize();
 			m_terrain_seed = d;
 
+			ImGui::SliderFloat("Y cut", &(app_ubo.params.w), 0.0f, 1.0f);
+			
 			if (ImGui::Button("Re init"))
 			{
 				resize();

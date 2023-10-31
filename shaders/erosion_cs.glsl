@@ -44,10 +44,10 @@ vec3 terrain = vec3(imageLoad(tex_terrain_read,voxel_coord).xyz) * FRACTION_DIVI
 //transforms a bit of water into rock in the same voxel, for demo purpose
 
 float sum_soil_water = terrain.y + terrain.z;
-float new_water = terrain.y * 0.99;//1% of whater removed
+float new_water = terrain.z * 0.99;//1% of water removed
 float new_soil = sum_soil_water - new_water;//ensure total matter conservation
 
-vec3 new_terrain = vec3(terrain.x,new_water,new_soil);
+vec3 new_terrain = vec3(terrain.x,new_soil,new_water);
 
 
 uvec3 new_terrain_quantized = clamp(uvec3(new_terrain*FRACTION_QUANTIZER),0u,FRACTION_QUANTIZER);

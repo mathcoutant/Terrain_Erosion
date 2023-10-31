@@ -33,8 +33,22 @@ out vec3 color_fs;
 
 void main()
 {
+    if (params.w* dimension.y < voxel_coord[0].y)// Y cut of terrain
+        return;
+
     vec3 terrain_distribution = vec3(imageLoad(tex_terrain,voxel_coord[0]).xyz) * FRACTION_DIVIDER;// in [0.0;1.0]^3
+    
     color_fs = terrain_distribution;//Color as the fraction, to be modified
+
+
+    if (terrain_distribution.x>max(terrain_distribution.y,terrain_distribution.z))//air
+        return;
+    else if (terrain_distribution.y>max(terrain_distribution.x,terrain_distribution.z))//soil
+        color_fs = vec3(0.2,0.2,0.2);
+    else // water
+        color_fs = vec3(0.0,0.2,0.7);
+
+
 
     vec3 pos = gl_in[0].gl_Position.xyz;
     vec3 v[8]; //les 8 sommets du cube

@@ -32,7 +32,7 @@ struct ApplicationUboDataStructure
 	vec4 sun_light;//.xyz: direction, .w:intensity
 	//Terrain
 	ivec4 dimension; //.x:dimension.x, .y:dimension.y, .z: dimension.z, .w:Voxel_count
-	vec4 params;//.x: erosion factor, .y: terrain_seed [UINT], .z:scale, .w:unused
+	vec4 params;//.x: erosion factor, .y: terrain_seed [UINT], .z:scale, .w: y_cut_ratio
 	//Modelisation parameters to add probably
 };
 

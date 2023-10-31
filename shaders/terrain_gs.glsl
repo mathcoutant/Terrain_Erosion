@@ -42,7 +42,8 @@ void main()
 
 
     if (terrain_distribution.x>max(terrain_distribution.y,terrain_distribution.z))//air
-        return;
+        //return;
+        color_fs = vec3(0.9,0.9,0.9);
     else if (terrain_distribution.y>max(terrain_distribution.x,terrain_distribution.z))//soil
         color_fs = vec3(0.2,0.2,0.2);
     else // water
@@ -52,7 +53,7 @@ void main()
 
     vec3 pos = gl_in[0].gl_Position.xyz;
     vec3 v[8]; //les 8 sommets du cube
-    vec2 s = 0.5*0.5*params.z*vec2(-1.0,1.0);//s.x = - 0.5*params.z; s.y = 0.5*params.z;
+    vec2 s = 0.5*params.z*vec2(-1.0,1.0);//s.x = - 0.5*params.z; s.y = 0.5*params.z;
 
     v[0] = pos + s.xxx;
     v[2] = pos + s.yxy;

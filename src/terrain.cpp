@@ -141,8 +141,8 @@ void Terrain::gui(ApplicationUboDataStructure& app_ubo)
 
 			//m_dimension = (m_dimension / uvec3(32)) * uvec3(32);
 
-			//if (old_dim != m_dimension)
-			//	resize();
+			if (old_dim != m_dimension)
+				resize();
 
 			d = m_erosion_passes_per_frame;
 			ImGui::InputInt("Erosion passes", &(d), 1, 100);

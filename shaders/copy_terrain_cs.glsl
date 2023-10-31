@@ -8,7 +8,7 @@
 layout (local_size_x = 4, local_size_y = 4,local_size_z = 4) in;
 
 layout(binding = TEX3D_SLOT_TERRAIN_READ, rgba16ui) restrict writeonly uniform uimage3D tex_terrain_read;
-layout(binding = TEX3D_SLOT_TERRAIN_WRITE, rgba16ui) restrict writeonly uniform uimage3D tex_terrain_write;
+layout(binding = TEX3D_SLOT_TERRAIN_WRITE, rgba16ui) restrict readonly uniform uimage3D tex_terrain_write;
 
 layout(binding = UBO_APPLICATION_BINDING, std140) uniform UBO_APPLICATION
 {
@@ -33,10 +33,6 @@ ivec3 voxel_coord = ivec3(gl_GlobalInvocationID.xyz);
 if (voxel_coord.x>=dimension.x || voxel_coord.y>=dimension.y || voxel_coord.z>=dimension.z)
     return;//abort invocation if voxel out from texture3D
 
-vec3 value = vec3(voxel_coord)/vec3(dimension.xyz);
-
-uvec3 new_terrain_quantized = clamp(uvec3(value*FRACTION_QUANTIZER),0u,FRACTION_QUANTIZER);
-
-imageStore(tex_terrain_read,voxel_coord,uvec4(new_terrain_quantized,0));
-imageStore(tex_terrain_write,voxel_coord,uvec4(new_terrain_quantized,0));
+//Dumb but efficient copy of terrain
+imageStore(tex_terrain_read,voxel_coord,imageLoad(tex_terrain_write,voxel_coord));
 }

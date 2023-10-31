@@ -1,9 +1,14 @@
 #version 460
+#define TEX3D_SLOT_TERRAIN_READ 0
+#define TEX3D_SLOT_TERRAIN_WRITE 1
+#define SSBO_SLOT_WATER_COUNTER 0
 #define UBO_APPLICATION_BINDING 0
-
+#define FRACTION_DIVIDER (1.0/60000.0)
 layout(points) in;
 layout(triangle_strip, max_vertices = 18) out;
 //layout(binding = 0, r8ui) restrict readonly uniform uimage3D tex_material_id;
+
+layout(binding = TEX3D_SLOT_TERRAIN_READ, rgba16ui) readonly uniform uimage3D tex_terrain;
 
 layout(binding = UBO_APPLICATION_BINDING, std140) uniform UBO_APPLICATION
 {
@@ -22,16 +27,19 @@ layout(binding = UBO_APPLICATION_BINDING, std140) uniform UBO_APPLICATION
     //Modelisation parameters to add probably
 };
 
-in uint material_id[]; 
-out uint material_id_fs;
+in ivec3 voxel_coord[];
+
+out vec3 color_fs;
 
 void main()
 {
+    vec3 terrain_distribution = vec3(imageLoad(tex_terrain,voxel_coord[0]).xyz) * FRACTION_DIVIDER;// in [0.0;1.0]^3
+    color_fs = terrain_distribution;//Color as the fraction, to be modified
+
     vec3 pos = gl_in[0].gl_Position.xyz;
     vec3 v[8]; //les 8 sommets du cube
-    vec2 s = 0.5*0.5*params.z*vec2(-1.0,1.0);//s.x = - 0.5*params.z;; s.y = 0.5*params.z;
+    vec2 s = 0.5*0.5*params.z*vec2(-1.0,1.0);//s.x = - 0.5*params.z; s.y = 0.5*params.z;
 
-    material_id_fs = material_id[0];
     v[0] = pos + s.xxx;
     v[2] = pos + s.yxy;
     v[3] = pos + s.xxy;

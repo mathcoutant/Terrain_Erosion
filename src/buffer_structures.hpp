@@ -11,8 +11,11 @@ using namespace glm;
 //more at https://www.khronos.org/opengl/wiki/Interface_Block_(GLSL)#Memory_layout
 
 //Texture channels ID:
-#define TEXTURE3D_SLOT_MATERIALID 0
+#define TEX3D_SLOT_TERRAIN_READ 0
+#define TEX3D_SLOT_TERRAIN_WRITE 1
 //...
+#define SSBO_SLOT_WATER_COUNTER 0
+
 
 //GLSL: layout(binding = 0, std140) uniform UBO_APPLICATION
 #define UBO_APPLICATION_BINDING 0

@@ -7,13 +7,19 @@ Terrain::Terrain()
 	m_shader_background = new ShaderGLSL("background_shader");
 	m_compute3D_init = new ShaderGLSL("init_textures3D_shader");
 	m_compute3D_erosion = new ShaderGLSL("erosion_shader");
+	m_compute3D_copy = new ShaderGLSL("Copy_grid_shader");
 	m_is_erosion_enabled = false;
 	m_is_erosion_continuous = false;
 	m_erosion_passes_per_frame = 1u;
 	m_erosion_factor = 1.0f;
 	m_terrain_seed = 0u;
 	m_scale = 1.0f;
-	tex_material_id.create_empty(m_dimension, {GL_R8UI,GL_RED_INTEGER,GL_UNSIGNED_BYTE}, TEXTURE3D_SLOT_MATERIALID);
+	m_tex_terrain[0].create_empty(m_dimension, {GL_RGBA16UI,GL_RGBA,GL_UNSIGNED_SHORT}, TEX3D_SLOT_TERRAIN_READ);
+	m_tex_terrain[1].create_empty(m_dimension, { GL_RGBA16UI,GL_RGBA,GL_UNSIGNED_SHORT }, TEX3D_SLOT_TERRAIN_WRITE);
+	m_water_counter.allocate(sizeof(glm::uvec4));
+	m_water_counter.set_target_and_slot(GL_SHADER_STORAGE_BUFFER, SSBO_SLOT_WATER_COUNTER);
+
+
 }
 
 void Terrain::load_shaders(std::string base_path)
@@ -36,6 +42,10 @@ void Terrain::load_shaders(std::string base_path)
 	m_compute3D_erosion->add_shader(GL_COMPUTE_SHADER, base_path, "shaders/erosion_cs.glsl");
 	m_compute3D_erosion->compile_and_link_to_program();
 	ContextHelper::add_shader_to_hot_reload(m_compute3D_erosion);
+
+	m_compute3D_copy->add_shader(GL_COMPUTE_SHADER, base_path, "shaders/copy_terrain_cs.glsl");
+	m_compute3D_copy->compile_and_link_to_program();
+	ContextHelper::add_shader_to_hot_reload(m_compute3D_copy);
 }
 
 void Terrain::resize()
@@ -45,7 +55,13 @@ void Terrain::resize()
 
 	std::cout << "Terrain new size: " << std::to_string(m_dimension.x) << " X " << std::to_string(m_dimension.y) << " X " << std::to_string(m_dimension.z) << " X " << std::endl;
 
-	tex_material_id.re_create_empty(m_dimension);
+	m_tex_terrain[0].re_create_empty(m_dimension);
+	m_tex_terrain[1].re_create_empty(m_dimension);
+	//Reset water counter
+	glm::uvec4 zero = glm::uvec4(0u);
+	m_water_counter.write_to_gpu(&zero);
+
+	//Recreating binds images for access in compute shaders
 	m_compute3D_init->use_shader_program();
 	glDispatchCompute(m_workgroup_count.x, m_workgroup_count.y, m_workgroup_count.z);
 	glFinish();
@@ -63,12 +79,17 @@ void Terrain::render()
 }
 
 void Terrain::erode()
-{
+{ 
 	if (m_is_erosion_enabled || m_is_erosion_continuous)
 	{
 		for (int i = 0; i < m_erosion_passes_per_frame; i++)
 		{
 			m_compute3D_erosion->use_shader_program();
+			glDispatchCompute(m_workgroup_count.x, m_workgroup_count.y, m_workgroup_count.z);
+			glFinish();
+			//Maybe several shaders will be needed, but we ping-pong read/write at the end of a pass
+
+			m_compute3D_copy->use_shader_program();
 			glDispatchCompute(m_workgroup_count.x, m_workgroup_count.y, m_workgroup_count.z);
 			glFinish();
 		}

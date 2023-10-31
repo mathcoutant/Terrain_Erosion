@@ -1,8 +1,8 @@
 #version 460
+#define TEX3D_SLOT_TERRAIN_READ 0
+#define TEX3D_SLOT_TERRAIN_WRITE 1
+#define SSBO_SLOT_WATER_COUNTER 0
 #define UBO_APPLICATION_BINDING 0
-
-layout(binding = 0, r8ui) restrict readonly uniform uimage3D tex_material_id;
-
 //matches buffer_structures.hpp
 layout(binding = UBO_APPLICATION_BINDING, std140) uniform UBO_APPLICATION
 {
@@ -21,16 +21,11 @@ layout(binding = UBO_APPLICATION_BINDING, std140) uniform UBO_APPLICATION
     //Modelisation parameters to add probably
 };
 
-out uint material_id;
+out ivec3 voxel_coord;
 void main() 
 {
     int dim_2d = (dimension.y*dimension.z);
-    ivec3 voxel_coord = ivec3(gl_VertexID / dim_2d,(gl_VertexID % dim_2d)/dimension.z,(gl_VertexID % dim_2d) % dimension.z);
-
-
+    voxel_coord = ivec3(gl_VertexID / dim_2d,(gl_VertexID % dim_2d)/dimension.z,(gl_VertexID % dim_2d) % dimension.z);
     vec3 pos = voxel_coord * params.z;
-
-    material_id = imageLoad(tex_material_id,voxel_coord).x;
-
     gl_Position = vec4(pos,1.0);
 }

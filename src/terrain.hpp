@@ -27,9 +27,18 @@ private:
 	//Compute shader
 	ShaderGLSL* m_compute3D_init;
 	ShaderGLSL* m_compute3D_erosion;
+	ShaderGLSL* m_compute3D_copy;
 
 	//Ressources Texture3D
-	Texture3D tex_material_id;//to define (0 = empty, 1 = rock .... ???)
+	Texture3D m_tex_terrain[2];//RGBA16UI, 2 texture for ping-pong read/write
+	//Each channel on 16 bits, as a uint: in [0, 2^16-1 = 65535], careful with overflow and substraction with uint !!!
+	// .x: fraction_of_air * 60'000
+	// .y: fraction_of_soil * 60'000
+	// .z: fraction_of_water * 60'000
+	// sum of .x, .y, .z should equal 60'000 at all time
+	// .w: 16 bits field for padding, may be useful to encode neighborhood properties !
+
+	GPUBuffer m_water_counter;// 1 uvec4, .x: stores water
 
 	bool m_is_erosion_enabled;
 	bool m_is_erosion_continuous;//erosion passes computed automatically each frame

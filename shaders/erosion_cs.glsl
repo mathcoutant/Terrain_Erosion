@@ -27,6 +27,26 @@ layout(binding = UBO_APPLICATION_BINDING, std140) uniform UBO_APPLICATION
     //Modelisation parameters to add probably
 };
 
+//Sarah's code
+uint seed = 42u;  // Initial seed value
+
+
+uint random() {
+    seed ^= (seed << 13);
+    seed ^= (seed >> 17);
+    seed ^= (seed << 5);
+    return seed;
+}
+
+float randomInRange(float min, float max) {
+    float zeroToOne = float(random()) / float(0xFFFFFFFFu);
+    return mix(min, max, zeroToOne);
+}
+
+float randomFromOneToTen() {
+    return randomInRange(1.0, 11.0);
+}
+
 
 layout(std430, binding = SSBO_SLOT_WATER_COUNTER) buffer SSBO_WATER_COUNTER
 {
@@ -41,7 +61,63 @@ if (voxel_coord.x>=dimension.x || voxel_coord.y>=dimension.y || voxel_coord.z>=d
 
 vec3 terrain = vec3(imageLoad(tex_terrain_read,voxel_coord).xyz) * FRACTION_DIVIDER;
 
+
+//Sarah's code
+
+//rain
+float randomValue = randomFromOneToTen();
+if (randomValue == 5){
+    float rain_drop = (terrain.x + terrain.y + terrain.z)*0.05;
+    if(water_counter.x > uint(rain_drop))
+        if (terrain.x>water_counter.x){
+            terrain.x -= water_counter.x;
+            terrain.z += water_counter.x;
+        }
+}
+
+//évaporation
+terrain.z -= terrain.z*0.05;
+
+
+//victo's code :
+if (terrain.z>max(terrain.x,terrain.y)){  //if terrain is water
+int empty_cubes=0; //count the number of empty cubes around
+    for (int x_ = voxel_coord.x -1;x_<voxel_coord.x +2;x_++){
+        for(int z_= voxel_coord.z -1;z_<voxel_coord.z +2;z_++){
+            if(x_ !=voxel_coord.x || z_ !=voxel_coord.z){
+                ivec3 neighbour_coord = voxel_coord + ivec3(x_,0,z_);
+                if (neighbour_coord.x>=dimension.x ||neighbour_coord.x==0|| neighbour_coord.y>=dimension.y||neighbour_coord.y==0 || neighbour_coord.z>=dimension.z ||neighbour_coord.z==0)
+                    break;//abort invocation if voxel out from texture3D
+                vec3 neighbour = vec3(imageLoad(tex_terrain_read,neighbour_coord).xyz) * FRACTION_DIVIDER;
+                if (neighbour.x>max(neighbour.y,neighbour.z)){
+                    empty_cubes+=1;
+                }
+            }
+        }
+    }
+    float amount_water=terrain.z/empty_cubes;
+
+    for (int x_ = voxel_coord.x -1;x_<voxel_coord.x +2;x_++){
+        for(int z_= voxel_coord.z -1;z_<voxel_coord.z +2;z_++){
+            if(x_ !=voxel_coord.x || z_ !=voxel_coord.z){
+                ivec3 neighbour_coord = voxel_coord + ivec3(x_,0,z_);
+                if (neighbour_coord.x>=dimension.x ||neighbour_coord.x<0|| neighbour_coord.y>=dimension.y||neighbour_coord.y<0 || neighbour_coord.z>=dimension.z ||neighbour_coord.z<0)
+                    break;//abort invocation if voxel out from texture3D
+                vec3 neighbour = vec3(imageLoad(tex_terrain_read,neighbour_coord).xyz) * FRACTION_DIVIDER;
+                if (neighbour.x>max(neighbour.y,neighbour.z)){
+                    neighbour.z += amount_water;
+                    neighbour.x-=amount_water;
+                }
+            }
+        }
+    }
+    terrain.z -=amount_water;
+}
+
 //transforms a bit of water into rock in the same voxel, for demo purpose
+
+
+
 
 float sum_soil_water = terrain.y + terrain.z;
 float new_water = terrain.z * 0.99;//1% of water removed

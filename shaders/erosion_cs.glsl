@@ -66,34 +66,22 @@ void main() {
     if (voxel_coord.y == dimension.y - 1)
         return;//do not simulate if voxel on the top level (we concider it will always be air)
 
-    //Construction of the structure stored back in the model
-    vec3[3][3][3] voxelContext;
-    for(int x=0; x<3; x++){
-        for(int y=0; y<3; y++){
-            for(int z=0; z<3; z++){
-                ivec3 coord = voxel_coord + ivec3(x-1,y-1,z-1);
-                if (coord.x>=dimension.x || coord.x==0 || coord.y>=dimension.y || coord.y==0 || coord.z>=dimension.z || coord.z==0)
-                    voxelContext[x][y][z] = vec3(0, 0, 0);
-                voxelContext[x][y][z] = vec3(imageLoad(tex_terrain_read,coord).xyz) * FRACTION_DIVIDER;;
-            }
-        }
-    }
-
-    if (voxelContext[1][2][1].x < max(voxelContext[1][2][1].y,voxelContext[1][2][1].z))
+    vec3 upperVoxel = vec3(imageLoad(tex_terrain_read,voxel_coord + ivec3(0,1,0)).xyz) * FRACTION_DIVIDER;
+    if (upperVoxel.x < max(upperVoxel.y,upperVoxel.z))
         return;//do not simulate if voxel is not on the surface
 
     //Rain
     if (randomFromOneToTen() == 5){
         float rain_drop = water_counter.x / (dimension.x * dimension.z);
-        if(water_counter.x>rain_drop && voxelContext[1][1][1].x>rain_drop*FRACTION_DIVIDER){
-                voxelContext[1][1][1].x -= rain_drop*FRACTION_DIVIDER;
-                voxelContext[1][1][1].z += rain_drop*FRACTION_DIVIDER;
+        if(water_counter.x>rain_drop && terrain.x>rain_drop*FRACTION_DIVIDER){
+                terrain.x -= rain_drop*FRACTION_DIVIDER;
+                terrain.z += rain_drop*FRACTION_DIVIDER;
                 atomicAdd(water_counter.x, -uint(rain_drop));
             }
     }
 
     //Water flows
-    if (voxelContext[1][1][1].z>max(voxelContext[1][1][1].x,voxelContext[1][1][1].y)){  //if terrain is water
+    if (terrain.z>max(terrain.x,terrain.y)){  //if terrain is water
         int empty_cubes=0; //count the number of empty cubes around
         for (int x_ = voxel_coord.x -1;x_<voxel_coord.x +2;x_++){
             for(int z_= voxel_coord.z -1;z_<voxel_coord.z +2;z_++){
@@ -128,36 +116,23 @@ void main() {
     }
 
     //Evaporation of 5% of water voxels
-    if (voxelContext[1][1][1].z>max(voxelContext[1][1][1].x,voxelContext[1][1][1].y)) {
-        float water_evaporated = voxelContext[1][1][1].z*0.05;
-        voxelContext[1][1][1].z -= water_evaporated;
+    if (terrain.z>max(terrain.x,terrain.y)) {
+        float water_evaporated = terrain.z*0.05;
+        terrain.z -= water_evaporated;
         atomicAdd(water_counter.x, uint(water_evaporated*FRACTION_QUANTIZER));
     }
 
     
 
     //transforms a bit of water into rock in the same voxel, for demo purpose
-    
-    //float sum_soil_water = terrain.y + terrain.z;
-    //float new_water = terrain.z * 0.99;//1% of water removed
-    //float new_soil = sum_soil_water - new_water;//ensure total matter conservation
+    float sum_soil_water = terrain.y + terrain.z;
+    float new_water = terrain.z * 0.99;//1% of water removed
+    float new_soil = sum_soil_water - new_water;//ensure total matter conservation
 
-    //vec3 new_terrain = vec3(terrain.x,new_soil,new_water);
-
-    //uvec3 new_terrain_quantized = clamp(uvec3(new_terrain*FRACTION_QUANTIZER),0u,FRACTION_QUANTIZER);
-    //imageStore(tex_terrain_write,voxel_coord,uvec4(new_terrain_quantized,0));
+    vec3 new_terrain = vec3(terrain.x,new_soil,new_water);
 
 
-    for(int x=0; x<3; x++){
-        for(int y=0; y<3; y++){
-            for(int z=0; z<3; z++){
-                ivec3 coord = voxel_coord + ivec3(x-1,y-1,z-1);
-                if (coord.x>=dimension.x || coord.x==0 || coord.y>=dimension.y || coord.y==0 || coord.z>=dimension.z || coord.z==0)
-                    continue;
-                uvec3 new_terrain_quantized = clamp(uvec3(voxelContext[x][y][z]*FRACTION_QUANTIZER),0u,FRACTION_QUANTIZER);
-                imageStore(tex_terrain_write, coord, uvec4(new_terrain_quantized,0)); //TODO: transform in atomic operation
-            }
-        }
-    }
+    uvec3 new_terrain_quantized = clamp(uvec3(new_terrain*FRACTION_QUANTIZER),0u,FRACTION_QUANTIZER);
+    imageStore(tex_terrain_write,voxel_coord,uvec4(new_terrain_quantized,0));
 
 }

@@ -17,8 +17,8 @@
 
 #include "terrain.hpp"
 
-#define FOLDER_ROOT "D:/Projet_Rendu/Terrain_Erosion/" // Victorine's stupid laptop
-//#define FOLDER_ROOT "../../../" // Mathieu
+//#define FOLDER_ROOT "D:/Projet_Rendu/Terrain_Erosion/" // Victorine's stupid laptop
+#define FOLDER_ROOT "../../../" // Mathieu
 //#define FOLDER_ROOT "../" //Jeremie
 
 int main(int argc, char* argv[]) {

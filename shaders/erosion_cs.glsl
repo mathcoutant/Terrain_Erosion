@@ -75,7 +75,7 @@ if (randomValue == 5){
         }
 }
 
-//évaporation
+//Ã©vaporation
 terrain.z -= terrain.z*0.05;
 
 

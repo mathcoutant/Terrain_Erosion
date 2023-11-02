@@ -18,7 +18,7 @@
 #include "terrain.hpp"
 
 //#define FOLDER_ROOT "D:/Projet_Rendu/Terrain_Erosion/" // Victorine's stupid laptop
-#define FOLDER_ROOT "C:/Users/SZ/Documents/JIN/Terrain_Erosion/"
+#define FOLDER_ROOT "C:/Users/SZ/Documents/JIN/Terrain_Erosion/" //Sarah
 //#define FOLDER_ROOT "../../../" // Mathieu
 //#define FOLDER_ROOT "../" //Jeremie
 

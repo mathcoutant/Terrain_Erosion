@@ -70,6 +70,27 @@ void main() {
     if (upperVoxel.x < max(upperVoxel.y,upperVoxel.z))
         return;//do not simulate if voxel is not on the surface
 
+
+    //if terrain is water 
+    if (terrain.z>max(terrain.x,terrain.y)){
+        //gives 5% of water to the soils around
+        for (int x_ = voxel_coord.x -1;x_<voxel_coord.x +2;x_++){
+            for(int z_= voxel_coord.z -1;z_<voxel_coord.z +2;z_++){
+                if(x_ !=voxel_coord.x || z_ !=voxel_coord.z){
+                    ivec3 neighbour_coord = voxel_coord + ivec3(x_,0,z_);
+                    if (neighbour_coord.x>=dimension.x || neighbour_coord.x==0 || neighbour_coord.y>=dimension.y || neighbour_coord.y==0 || neighbour_coord.z>=dimension.z || neighbour_coord.z==0)
+                        break;//abort invocation if voxel out from texture3D
+                    vec3 neighbour = vec3(imageLoad(tex_terrain_read,neighbour_coord).xyz) * FRACTION_DIVIDER;
+                    if (neighbour.y>max(neighbour.x,neighbour.z)){
+                        terrain.z-=0.05;
+                        terrain.x+=0.05;
+                    }
+                }
+            }
+        }
+    }
+
+
     //Rain
     if (randomFromOneToTen() == 5){
         float rain_drop = water_counter.x / (dimension.x * dimension.z);
@@ -115,6 +136,26 @@ void main() {
         terrain.z -=amount_water;
     }
 
+    //if terrain is soil 
+    //GET 5% of water from water cubes and lose 5% of soil
+    if (terrain.y>max(terrain.x,terrain.z)){
+        for (int x_ = voxel_coord.x -1;x_<voxel_coord.x +2;x_++){
+            for(int z_= voxel_coord.z -1;z_<voxel_coord.z +2;z_++){
+                if(x_ !=voxel_coord.x || z_ !=voxel_coord.z){
+                    ivec3 neighbour_coord = voxel_coord + ivec3(x_,0,z_);
+                    if (neighbour_coord.x>=dimension.x || neighbour_coord.x==0 || neighbour_coord.y>=dimension.y || neighbour_coord.y==0 || neighbour_coord.z>=dimension.z || neighbour_coord.z==0)
+                        break;//abort invocation if voxel out from texture3D
+                    vec3 neighbour = vec3(imageLoad(tex_terrain_read,neighbour_coord).xyz) * FRACTION_DIVIDER;
+                    if (neighbour.z>max(neighbour.y,neighbour.x)){
+                        terrain.y-=0.05;
+                        terrain.z+=0.05;
+                    }
+                }
+            }
+        }
+    }
+
+
     //Evaporation of 5% of water voxels
     if (terrain.z>max(terrain.x,terrain.y)) {
         float water_evaporated = terrain.z*0.05;
@@ -125,13 +166,11 @@ void main() {
     
 
     //transforms a bit of water into rock in the same voxel, for demo purpose
-    float sum_soil_water = terrain.y + terrain.z;
-    float new_water = terrain.z * 0.99;//1% of water removed
-    float new_soil = sum_soil_water - new_water;//ensure total matter conservation
+    //float sum_soil_water = terrain.y + terrain.z;
+    //float new_water = terrain.z * 0.99;//1% of water removed
+    //float new_soil = sum_soil_water - new_water;//ensure total matter conservation
 
-    vec3 new_terrain = vec3(terrain.x,new_soil,new_water);
-
-
+    vec3 new_terrain = vec3(terrain.x,terrain.y,terrain.z);
     uvec3 new_terrain_quantized = clamp(uvec3(new_terrain*FRACTION_QUANTIZER),0u,FRACTION_QUANTIZER);
     imageStore(tex_terrain_write,voxel_coord,uvec4(new_terrain_quantized,0));
 

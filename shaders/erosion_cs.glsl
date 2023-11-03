@@ -77,15 +77,13 @@ void main() {
         return;//do not simulate if voxel is not on the surface
 
     //Rain
-    if (randomFromOneToTen() > 9){
+    //if (randomFromOneToTen() > 9){
         float rain_drop = water_counter.x / (dimension.x * dimension.z);
-        if(water_counter.x>rain_drop){
-            terrain.x -= rain_drop*FRACTION_DIVIDER;
-            if(terrain.x < 0) terrain.x=0;
-            terrain.z += rain_drop*FRACTION_DIVIDER;
-            atomicAdd(water_counter.x, uint(-rain_drop));
-        }
-    }
+        terrain.x -= rain_drop*FRACTION_DIVIDER;
+        if(terrain.x < 0) terrain.x=0;
+        terrain.z += rain_drop*FRACTION_DIVIDER;
+        atomicAdd(water_counter.x, uint(-rain_drop));
+    //}
     
     //Calculate the amount of water that will flow to lower voxels
     float waterLost = 0;

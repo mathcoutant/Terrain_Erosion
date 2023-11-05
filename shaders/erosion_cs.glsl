@@ -76,6 +76,27 @@ void main() {
     if (upperVoxel.x < max(upperVoxel.y,upperVoxel.z))
         return;//do not simulate if voxel is not on the surface
 
+    //Balancing the water : take the sum of all adjacents water voxels and do a mean
+    if (terrain.z>max(terrain.x,terrain.y)){
+        float sum_local_water=terrain.z;
+        int total_water_voxels=1;
+        for (int x_ = voxel_coord.x -1;x_<voxel_coord.x +2;x_++){
+            for(int z_= voxel_coord.z -1;z_<voxel_coord.z +2;z_++){
+                if(x_ !=voxel_coord.x || z_ !=voxel_coord.z){
+                    ivec3 neighbour_coord = voxel_coord + ivec3(x_,0,z_);
+                    if (neighbour_coord.x>=dimension.x || neighbour_coord.x==0 || neighbour_coord.y>=dimension.y || neighbour_coord.y==0 || neighbour_coord.z>=dimension.z || neighbour_coord.z==0)
+                       break;//abort invocation if voxel out from texture3D
+                    vec3 neighbour = vec3(imageLoad(tex_terrain_read,neighbour_coord).xyz) * FRACTION_DIVIDER;
+                    if (neighbour.z>max(neighbour.x,neighbour.y)){
+                        sum_local_water+=neighbour.z;
+                        total_water_voxels+=1;
+                    }
+                }
+            }
+        }
+        terrain.z=sum_local_water/total_water_voxels;
+    }
+
     //Rain
     //if (randomFromOneToTen() > 9){
         float rain_drop = water_counter.x / (dimension.x * dimension.z);
@@ -145,25 +166,25 @@ void main() {
     terrain.x -= waterGained + soilGained;
     if(terrain.x<0) terrain.x = 0;
 
-//    //if terrain is water 
-//    if (terrain.z>max(terrain.x,terrain.y)){
-//        //gives 5% of water to the soils around
-//        for (int x_ = voxel_coord.x -1;x_<voxel_coord.x +2;x_++){
-//            for(int z_= voxel_coord.z -1;z_<voxel_coord.z +2;z_++){
-//                if(x_ !=voxel_coord.x || z_ !=voxel_coord.z){
-//                    ivec3 neighbour_coord = voxel_coord + ivec3(x_,0,z_);
-//                    if (neighbour_coord.x>=dimension.x || neighbour_coord.x==0 || neighbour_coord.y>=dimension.y || neighbour_coord.y==0 || neighbour_coord.z>=dimension.z || neighbour_coord.z==0)
-//                        break;//abort invocation if voxel out from texture3D
-//                    vec3 neighbour = vec3(imageLoad(tex_terrain_read,neighbour_coord).xyz) * FRACTION_DIVIDER;
-//                    if (neighbour.y>max(neighbour.x,neighbour.z)){
-//                        terrain.z-=0.05;
-//                        terrain.x+=0.05;
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
+    //terrain's erosion, water side
+    if (terrain.z>max(terrain.x,terrain.y)){
+        //gives 5% of water to the soils around
+        for (int x_ = voxel_coord.x -1;x_<voxel_coord.x +2;x_++){
+            for(int z_= voxel_coord.z -1;z_<voxel_coord.z +2;z_++){
+                if(x_ !=voxel_coord.x || z_ !=voxel_coord.z){
+                    ivec3 neighbour_coord = voxel_coord + ivec3(x_,0,z_);
+                    if (neighbour_coord.x>=dimension.x || neighbour_coord.x==0 || neighbour_coord.y>=dimension.y || neighbour_coord.y==0 || neighbour_coord.z>=dimension.z || neighbour_coord.z==0)
+                        break;//abort invocation if voxel out from texture3D
+                    vec3 neighbour = vec3(imageLoad(tex_terrain_read,neighbour_coord).xyz) * FRACTION_DIVIDER;
+                    if (neighbour.y>max(neighbour.x,neighbour.z)){
+                        terrain.z-=0.05;
+                        terrain.x+=0.05;
+                    }
+                }
+            }
+        }
+    }
+
 //    //Water flows
 //    if (terrain.z>max(terrain.x,terrain.y)){  //if terrain is water
 //        int empty_cubes=0; //count the number of empty cubes around
@@ -199,24 +220,24 @@ void main() {
 //        terrain.z -=amount_water;
 //    }
 //    
-//    //if terrain is soil 
-//    //GET 5% of water from water cubes and lose 5% of soil
-//    if (terrain.y>max(terrain.x,terrain.z)){
-//        for (int x_ = voxel_coord.x -1;x_<voxel_coord.x +2;x_++){
-//            for(int z_= voxel_coord.z -1;z_<voxel_coord.z +2;z_++){
-//                if(x_ !=voxel_coord.x || z_ !=voxel_coord.z){
-//                    ivec3 neighbour_coord = voxel_coord + ivec3(x_,0,z_);
-//                    if (neighbour_coord.x>=dimension.x || neighbour_coord.x==0 || neighbour_coord.y>=dimension.y || neighbour_coord.y==0 || neighbour_coord.z>=dimension.z || neighbour_coord.z==0)
-//                        break;//abort invocation if voxel out from texture3D
-//                    vec3 neighbour = vec3(imageLoad(tex_terrain_read,neighbour_coord).xyz) * FRACTION_DIVIDER;
-//                    if (neighbour.z>max(neighbour.y,neighbour.x)){
-//                        terrain.y-=0.05;
-//                        terrain.z+=0.05;
-//                    }
-//                }
-//            }
-//        }
-//    }
+    //terrain's erosion, soil side
+    //GET 5% of water from water cubes and lose 5% of soil
+    if (terrain.y>max(terrain.x,terrain.z)){
+        for (int x_ = voxel_coord.x -1;x_<voxel_coord.x +2;x_++){
+            for(int z_= voxel_coord.z -1;z_<voxel_coord.z +2;z_++){
+                if(x_ !=voxel_coord.x || z_ !=voxel_coord.z){
+                    ivec3 neighbour_coord = voxel_coord + ivec3(x_,0,z_);
+                    if (neighbour_coord.x>=dimension.x || neighbour_coord.x==0 || neighbour_coord.y>=dimension.y || neighbour_coord.y==0 || neighbour_coord.z>=dimension.z || neighbour_coord.z==0)
+                        break;//abort invocation if voxel out from texture3D
+                    vec3 neighbour = vec3(imageLoad(tex_terrain_read,neighbour_coord).xyz) * FRACTION_DIVIDER;
+                    if (neighbour.z>max(neighbour.y,neighbour.x)){
+                        terrain.y-=0.05;
+                        terrain.z+=0.05;
+                    }
+                }
+            }
+        }
+    }
 
 
     //Evaporation of 5% of water voxels

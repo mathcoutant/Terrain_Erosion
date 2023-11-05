@@ -6,5 +6,7 @@ in vec3 color_fs;
 
 void main() 
 {
+    if(color_fs == vec3(0.9,0.9,0.9))
+        discard;
     pixel_color = vec4(color_fs,1.0);
 }

@@ -42,8 +42,8 @@ void main()
 
 
     if (terrain_distribution.x>max(terrain_distribution.y,terrain_distribution.z))//air
-        //return;
-        color_fs = vec3(0.9,0.9,0.9);
+        return;
+        //color_fs = vec3(0.9,0.9,0.9);
     else if (terrain_distribution.y>max(terrain_distribution.x,terrain_distribution.z))//soil
         color_fs = vec3(0.2,0.2,0.2);
     else // water
